@@ -1,5 +1,5 @@
 set serveroutput on;
-
+-- created a sequence
 begin
     begin
     execute immediate 'create sequence customer_pk';
@@ -11,22 +11,18 @@ end;
 
 ----creating tables and establishing constraints
 
---zoo_info table
+--zoo_info table creation
 begin
   begin
    execute immediate 'alter table ticket_pricing_pr drop constraint ticket_pricing_fk';
    exception when others then null;
    end;
    begin 
-   execute immediate 'alter table zoo_department_pr drop constraint zoo_department_fk';
+   execute immediate 'alter table animal_pr drop constraint animal_fk_1';
    exception when others then null;
    end;
    begin 
-   execute immediate 'alter table animal_pr drop constraint animal_fk';
-   exception when others then null;
-   end;
-   begin 
-   execute immediate 'alter table department_pr drop constraint department_fk';
+   execute immediate 'alter table employee_pr drop constraint employee_fk_2';
    exception when others then null;
    end;
    begin
@@ -43,7 +39,7 @@ begin
 end;
 /
 
--- ticket_pricing table
+-- ticket_pricing table creation
 begin
   begin
   execute immediate 'alter table transaction_pr drop constraint transaction_fk2';
@@ -66,7 +62,7 @@ end;
 /
 
                                                                
---customer table
+--customer table creation
 begin
     begin
   execute immediate 'alter table transaction_pr drop constraint transaction_fk1';
@@ -87,7 +83,7 @@ end;
 /
 
 
---transaction table
+--transaction table creation
 begin
   begin
    execute immediate 'drop table transaction_pr';
@@ -108,14 +104,14 @@ end;
 /
 
 
---department table
+--department table creation
 begin
     begin 
    execute immediate 'alter table zoo_department_pr drop constraint zoo_department_fk';
    exception when others then null;
    end;
    begin 
-   execute immediate 'alter table employee_pr drop constraint employee_fk';
+   execute immediate 'alter table employee_pr drop constraint employee_fk_1';
    exception when others then null;
    end;
   begin
@@ -130,7 +126,7 @@ begin
 end;
 /
 
-
+/*drop table zoo_department_pr;
 --zoo_department table
 begin
   begin
@@ -146,9 +142,9 @@ begin
                                 constraint zoo_department_uk unique(zoo_id,department_id))';
     dbms_output.put_line('table zoo_department_pr created');
 end;
-/
+/*/
 
---employee table
+--employee table creation
 begin
   begin
    execute immediate 'drop table employee_pr';
@@ -159,28 +155,18 @@ begin
                                 first_name varchar(30),
                                 last_name varchar(30),
                                 date_of_birth date,
-                                department_id int,
+                                department_id int not null,
+                                zoo_id int not null,
+                                constraint employee_fk_2 foreign key (zoo_id) references zoo_info_pr(zoo_id),
                                 constraint employee_pk primary key (employee_id),
-                                constraint employee_fk foreign key (department_id) references department_pr(department_id))';
+                                constraint employee_fk_1 foreign key (department_id) references department_pr(department_id))';
     dbms_output.put_line('table employee_pr created');
 end;
 /
 
 
---animal table
+--animal table creation
 begin
-    begin
-    execute immediate 'alter table habitat_pr drop constraint habitat_fk';
-    exception when others then null;
-    end;
-    begin 
-    execute immediate 'alter table animal_kingdom_pr drop constraint animal_kingdom_fk';
-    exception when others then null;
-    end;
-    begin
-    execute immediate 'alter table nutrition_pr drop constraint nutrition_fk';
-    exception when others then null;
-    end;
   begin
    execute immediate 'drop table animal_pr';
   exception when others then
@@ -192,15 +178,25 @@ begin
                                 category varchar(30),
                                 endangered_category varchar(30),
                                 life_expectency int,
+                                habitat_id int not null,
+                                nutrition_id int not null,
+                                animal_kingdom_id int not null,
+                                constraint animal_fk_2 foreign key (habitat_id) references habitat_pr(habitat_id),
+                                constraint animal_fk_3 foreign key (nutrition_id) references nutrition_pr(nutrition_id),
+                                constraint animal_fk_4 foreign key (animal_kingdom_id) references animal_kingdom_pr(animal_kingdom_id),
                                 constraint animal_pk  primary key (animal_id),
-                                constraint animal_fk foreign key (zoo_id) references zoo_info_pr(zoo_id),
+                                constraint animal_fk_1 foreign key (zoo_id) references zoo_info_pr(zoo_id),
                                 constraint animal_uk unique(zoo_id,animal_name))';
     dbms_output.put_line('table animal_pr created');
 end;
 /
 
---habitat table 
+--habitat table creation
 begin
+  begin 
+    execute immediate 'alter table animal_pr drop constraint animal_fk_2';
+    exception when others then null;
+  end;
   begin
    execute immediate 'drop table habitat_pr';
   exception when others then
@@ -208,15 +204,17 @@ begin
   end;
   execute immediate 'create table habitat_pr(habitat_id int,
                                 habitat_name varchar(30),
-                                animal_id int,
-                                constraint habitat_pk primary key (habitat_id),
-                                constraint habitat_fk foreign key (animal_id) references animal_pr(animal_id))';
+                                constraint habitat_pk primary key (habitat_id))';
     dbms_output.put_line('table habitat_pr created');
 end;
 /
 
---animal_kingdom table
+--animal_kingdom table creation
 begin
+  begin 
+    execute immediate 'alter table animal_pr drop constraint animal_fk_4';
+    exception when others then null;
+  end;
   begin
    execute immediate 'drop table animal_kingdom_pr';
   exception when others then
@@ -224,27 +222,26 @@ begin
   end;
   execute immediate 'create table animal_kingdom_pr(animal_kingdom_id int,
                                 kingdom_name varchar(30),
-                                animal_id int,
-                                constraint animal_kingdom_pk primary key (animal_kingdom_id),
-                                constraint animal_kingdom_fk foreign key (animal_id) references animal_pr(animal_id))';
+                                constraint animal_kingdom_pk primary key (animal_kingdom_id))';
     dbms_output.put_line('table animal_kingdom_pr created');
 end;
 /
 
---nutrition table
+--nutrition table  creation
 begin
+  begin 
+    execute immediate 'alter table animal_pr drop constraint animal_fk_3';
+    exception when others then null;
+  end;
   begin
    execute immediate 'drop table nutrition_pr';
-   
   exception when others then
    NULL;
   end;
   execute immediate 'create table nutrition_pr(nutrition_id int,
                                 nutrition_type varchar(30),
                                 nutrition_cost int,
-                                animal_id int,
-                                constraint nutrition_pk primary key (nutrition_id),
-                                constraint nutrition_fk foreign key (animal_id) references animal_pr(animal_id))';
+                                constraint nutrition_pk primary key (nutrition_id))';
     dbms_output.put_line('table nutrition_pr created');
 end;
 /
