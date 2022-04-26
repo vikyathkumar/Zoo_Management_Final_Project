@@ -1,5 +1,5 @@
 set serveroutput on;
-
+-- created a sequence
 begin
     begin
     execute immediate 'create sequence customer_pk';
@@ -11,18 +11,38 @@ end;
 
 ----creating tables and establishing constraints
 
---zoo_info table
+--zoo_info table creation
 begin
   begin
    execute immediate 'alter table ticket_pricing_pr drop constraint ticket_pricing_fk';
    exception when others then null;
    end;
+<<<<<<< HEAD
    begin 
    execute immediate 'alter table animal_pr drop constraint animal_fk_1';
+<<<<<<< HEAD
    exception when others then null;
    end;
    begin 
    execute immediate 'alter table employee_pr drop constraint employee_fk_2';
+=======
+   exception when others then null;
+   end;
+   begin 
+   execute immediate 'alter table employee_pr drop constraint employee_fk_2';
+=======
+   begin
+   execute immediate 'alter table zoo_department_pr drop constraint zoo_department_fk';
+   exception when others then null;
+   end;
+   begin
+   execute immediate 'alter table animal_pr drop constraint animal_fk';
+   exception when others then null;
+   end;
+   begin
+   execute immediate 'alter table department_pr drop constraint department_fk';
+>>>>>>> 26b77bbdeaf0cbf5d596818c72c15ce6599c3b0f
+>>>>>>> d284f76f407d6ec208ee65b78515c7d8cfbad0e0
    exception when others then null;
    end;
    begin
@@ -39,7 +59,7 @@ begin
 end;
 /
 
--- ticket_pricing table
+-- ticket_pricing table creation
 begin
   begin
   execute immediate 'alter table transaction_pr drop constraint transaction_fk2';
@@ -61,8 +81,13 @@ begin
 end;
 /
 
+<<<<<<< HEAD
                                                                
+--customer table creation
+=======
+
 --customer table
+>>>>>>> 26b77bbdeaf0cbf5d596818c72c15ce6599c3b0f
 begin
     begin
   execute immediate 'alter table transaction_pr drop constraint transaction_fk1';
@@ -83,7 +108,7 @@ end;
 /
 
 
---transaction table
+--transaction table creation
 begin
   begin
    execute immediate 'drop table transaction_pr';
@@ -104,14 +129,22 @@ end;
 /
 
 
---department table
+--department table creation
 begin
-    begin 
+    begin
    execute immediate 'alter table zoo_department_pr drop constraint zoo_department_fk';
    exception when others then null;
    end;
+<<<<<<< HEAD
    begin 
    execute immediate 'alter table employee_pr drop constraint employee_fk_1';
+<<<<<<< HEAD
+=======
+=======
+   begin
+   execute immediate 'alter table employee_pr drop constraint employee_fk';
+>>>>>>> 26b77bbdeaf0cbf5d596818c72c15ce6599c3b0f
+>>>>>>> d284f76f407d6ec208ee65b78515c7d8cfbad0e0
    exception when others then null;
    end;
   begin
@@ -144,7 +177,7 @@ begin
 end;
 /*/
 
---employee table
+--employee table creation
 begin
   begin
    execute immediate 'drop table employee_pr';
@@ -165,6 +198,7 @@ end;
 /
 
 
+<<<<<<< HEAD
 --habitat table 
 begin
   begin 
@@ -223,6 +257,25 @@ end;
 
 --animal table
 begin
+=======
+--animal table creation
+begin
+<<<<<<< HEAD
+=======
+    begin
+    execute immediate 'alter table habitat_pr drop constraint habitat_fk';
+    exception when others then null;
+    end;
+    begin
+    execute immediate 'alter table animal_kingdom_pr drop constraint animal_kingdom_fk';
+    exception when others then null;
+    end;
+    begin
+    execute immediate 'alter table nutrition_pr drop constraint nutrition_fk';
+    exception when others then null;
+    end;
+>>>>>>> 26b77bbdeaf0cbf5d596818c72c15ce6599c3b0f
+>>>>>>> d284f76f407d6ec208ee65b78515c7d8cfbad0e0
   begin
    execute immediate 'drop table animal_pr';
   exception when others then
@@ -247,6 +300,7 @@ begin
 end;
 /
 
+<<<<<<< HEAD
 
 
 ----inserting values into tables
@@ -385,3 +439,67 @@ insert all
     into customer_pr values ( 52, 'Grace', 'Swift', 'F')
     into customer_pr values ( 53, 'Theresa', ' Payne', 'F')
     select 1 from dual;
+=======
+<<<<<<< HEAD
+--habitat table creation
+=======
+--habitat table
+>>>>>>> 26b77bbdeaf0cbf5d596818c72c15ce6599c3b0f
+begin
+  begin 
+    execute immediate 'alter table animal_pr drop constraint animal_fk_2';
+    exception when others then null;
+  end;
+  begin
+   execute immediate 'drop table habitat_pr';
+  exception when others then
+   NULL;
+  end;
+  execute immediate 'create table habitat_pr(habitat_id int,
+                                habitat_name varchar(30),
+                                constraint habitat_pk primary key (habitat_id))';
+    dbms_output.put_line('table habitat_pr created');
+end;
+/
+
+--animal_kingdom table creation
+begin
+  begin 
+    execute immediate 'alter table animal_pr drop constraint animal_fk_4';
+    exception when others then null;
+  end;
+  begin
+   execute immediate 'drop table animal_kingdom_pr';
+  exception when others then
+   NULL;
+  end;
+  execute immediate 'create table animal_kingdom_pr(animal_kingdom_id int,
+                                kingdom_name varchar(30),
+                                constraint animal_kingdom_pk primary key (animal_kingdom_id))';
+    dbms_output.put_line('table animal_kingdom_pr created');
+end;
+/
+
+--nutrition table  creation
+begin
+  begin 
+    execute immediate 'alter table animal_pr drop constraint animal_fk_3';
+    exception when others then null;
+  end;
+  begin
+   execute immediate 'drop table nutrition_pr';
+<<<<<<< HEAD
+=======
+
+>>>>>>> 26b77bbdeaf0cbf5d596818c72c15ce6599c3b0f
+  exception when others then
+   NULL;
+  end;
+  execute immediate 'create table nutrition_pr(nutrition_id int,
+                                nutrition_type varchar(30),
+                                nutrition_cost int,
+                                constraint nutrition_pk primary key (nutrition_id))';
+    dbms_output.put_line('table nutrition_pr created');
+end;
+/
+>>>>>>> d284f76f407d6ec208ee65b78515c7d8cfbad0e0
