@@ -18,15 +18,15 @@ begin
    execute immediate 'alter table ticket_pricing_pr drop constraint ticket_pricing_fk';
    exception when others then null;
    end;
-   begin 
+   begin
    execute immediate 'alter table zoo_department_pr drop constraint zoo_department_fk';
    exception when others then null;
    end;
-   begin 
+   begin
    execute immediate 'alter table animal_pr drop constraint animal_fk';
    exception when others then null;
    end;
-   begin 
+   begin
    execute immediate 'alter table department_pr drop constraint department_fk';
    exception when others then null;
    end;
@@ -66,7 +66,7 @@ begin
 end;
 /
 
-                                                               
+
 --customer table
 begin
     begin
@@ -111,11 +111,11 @@ end;
 
 --department table
 begin
-    begin 
+    begin
    execute immediate 'alter table zoo_department_pr drop constraint zoo_department_fk';
    exception when others then null;
    end;
-   begin 
+   begin
    execute immediate 'alter table employee_pr drop constraint employee_fk';
    exception when others then null;
    end;
@@ -174,7 +174,7 @@ begin
     execute immediate 'alter table habitat_pr drop constraint habitat_fk';
     exception when others then null;
     end;
-    begin 
+    begin
     execute immediate 'alter table animal_kingdom_pr drop constraint animal_kingdom_fk';
     exception when others then null;
     end;
@@ -200,7 +200,7 @@ begin
 end;
 /
 
---habitat table 
+--habitat table
 begin
   begin
    execute immediate 'drop table habitat_pr';
@@ -236,7 +236,7 @@ end;
 begin
   begin
    execute immediate 'drop table nutrition_pr';
-   
+
   exception when others then
    NULL;
   end;
