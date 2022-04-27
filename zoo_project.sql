@@ -17,11 +17,7 @@ begin
    execute immediate 'alter table ticket_pricing_pr drop constraint ticket_pricing_fk';
    exception when others then null;
    end;
-<<<<<<< HEAD
-   begin 
-=======
    begin
->>>>>>> 3fd54c6073801152e04225a71e42d6a4a65f14d2
    execute immediate 'alter table animal_pr drop constraint animal_fk_1';
    exception when others then null;
    end;
@@ -65,11 +61,7 @@ begin
 end;
 /
 
-<<<<<<< HEAD
-                                                               
-=======
 
->>>>>>> 3fd54c6073801152e04225a71e42d6a4a65f14d2
 --customer table
 begin
     begin
@@ -114,15 +106,11 @@ end;
 
 --department table
 begin
-    begin 
+    begin
    execute immediate 'alter table zoo_department_pr drop constraint zoo_department_fk';
    exception when others then null;
    end;
-<<<<<<< HEAD
-   begin 
-=======
    begin
->>>>>>> 3fd54c6073801152e04225a71e42d6a4a65f14d2
    execute immediate 'alter table employee_pr drop constraint employee_fk_1';
    exception when others then null;
    end;
@@ -177,10 +165,6 @@ end;
 /
 
 
-<<<<<<< HEAD
---animal table
-begin
-=======
 --habitat table
 begin
   begin
@@ -239,7 +223,6 @@ end;
 
 --animal table
 begin
->>>>>>> 3fd54c6073801152e04225a71e42d6a4a65f14d2
   begin
    execute immediate 'drop table animal_pr';
   exception when others then
@@ -264,62 +247,6 @@ begin
 end;
 /
 
-<<<<<<< HEAD
---habitat table 
-begin
-  begin 
-    execute immediate 'alter table animal_pr drop constraint animal_fk_2';
-    exception when others then null;
-  end;
-  begin
-   execute immediate 'drop table habitat_pr';
-  exception when others then
-   NULL;
-  end;
-  execute immediate 'create table habitat_pr(habitat_id int,
-                                habitat_name varchar(30),
-                                constraint habitat_pk primary key (habitat_id))';
-    dbms_output.put_line('table habitat_pr created');
-end;
-/
-
---animal_kingdom table
-begin
-  begin 
-    execute immediate 'alter table animal_pr drop constraint animal_fk_4';
-    exception when others then null;
-  end;
-  begin
-   execute immediate 'drop table animal_kingdom_pr';
-  exception when others then
-   NULL;
-  end;
-  execute immediate 'create table animal_kingdom_pr(animal_kingdom_id int,
-                                kingdom_name varchar(30),
-                                constraint animal_kingdom_pk primary key (animal_kingdom_id))';
-    dbms_output.put_line('table animal_kingdom_pr created');
-end;
-/
-
---nutrition table
-begin
-  begin 
-    execute immediate 'alter table animal_pr drop constraint animal_fk_3';
-    exception when others then null;
-  end;
-  begin
-   execute immediate 'drop table nutrition_pr';
-  exception when others then
-   NULL;
-  end;
-  execute immediate 'create table nutrition_pr(nutrition_id int,
-                                nutrition_type varchar(30),
-                                nutrition_cost int,
-                                constraint nutrition_pk primary key (nutrition_id))';
-    dbms_output.put_line('table nutrition_pr created');
-end;
-/
-=======
 
 
 ----inserting values into tables
@@ -1008,26 +935,107 @@ create or replace view emp_details as
     order by zoo_name;
 
 select * from emp_details;
->>>>>>> 3fd54c6073801152e04225a71e42d6a4a65f14d2
+
+
+---------
+
+
+----creating stored procedures
+
+
+--creating procedure to update the ticket price of a given ticket id
+create or replace procedure update_ticket_price(t_id in int, n_price in int)  as
+not_found_tid exception;
+valid_in_ch int;
+many_rows_fetched exception;
+begin
+    select count(*) into valid_in_ch from ticket_pricing_pr where ticket_id = t_id;
+    if valid_in_ch < 1
+    then raise not_found_tid;
+    elsif valid_in_ch > 1
+    then raise many_rows_fetched;
+    end if;
+
+    update ticket_pricing_pr set price = n_price where ticket_id = t_id;
+    dbms_output.put_line('update of ticket price successfull');
+    exception
+        when not_found_tid then dbms_output.put_line('Given ticket id not found');
+        when many_rows_fetched then dbms_output.put_line('Given ticket id fetching more than one row');
+end update_ticket_price;
+/
+--execute the below to update the ticket rate of tocket if 1 to 500
+exec update_ticket_price(1,500);
+
+
+--procedure to delete an animal if the need arises
+create or replace procedure delete_animal (anml_id in int) as
+not_found_anmid exception;
+ch_in int;
+too_many_rows_fetched exception;
+begin
+    select count(*) into ch_in from animal_pr where animal_id = anml_id;
+    if ch_in < 1
+    then raise not_found_anmid;
+    elsif ch_in > 1
+    then raise too_many_rows_fetched;
+    end if;
+
+    delete from animal_pr where animal_id = anml_id;
+    dbms_output.put_line('deleted the specified aniaml');
+    exception
+        when not_found_anmid then dbms_output.put_line('Given input has no corresponding record');
+        when too_many_rows_fetched then dbms_output.put_line('Given input fetching more than one record');
+end delete_animal;
+/
+
 
 --procedure to update the nutrition cost given the nutrition id
 create or replace procedure update_nutrition_cost(nid in int, n_cost in int) as
 valid_ch int;
 no_rec exception;
 more_rec exception;
-begin 
+begin
     select count(*) into valid_ch from nutrition_pr where nutrition_id = nid;
     if valid_ch < 1 then raise no_rec;
     elsif valid_ch>1 then raise more_rec;
     end if;
-    
+
     update nutrition_pr set nutrition_cost = n_cost where nutrition_id = nid;
     dbms_output.put_line('nutrition cost updated successfully');
-    exception 
+    exception
         when no_rec then dbms_output.put_line('Given nutrition id not able to fetch any records');
         when more_rec then dbms_output.put_line('given nutririon id returning more then 1 record');
 end update_nutrition_cost;
 /
+
+
+
+
+-----creating functions
+
+--function to return the animal_id when animal name and zoo name is given which can be passed to the delete animal procedure
+create or replace function anml_id(an_name in varchar, zid in int) return int as anid int;
+for_now int;
+no_rows exception;
+outs int;
+many_rows exception;
+begin
+    select count(*) into for_now from animal_pr where animal_name = an_name and zoo_id = zid;
+    if for_now < 1 then raise no_rows;
+    elsif for_now > 1 then raise many_rows;
+    end if;
+
+    select animal_id into outs from animal_pr where animal_name = an_name and zoo_id = zid;
+    anid := outs;
+    return(anid);
+    exception
+        when no_rows then dbms_output.put_line('Given input parameters not able to fetch any records');
+        when many_rows then dbms_output.put_line('given inputs returning more than one row');
+end anml_id;
+/
+--the below line can be executed to delete the specified animal from the specified zoo
+exec delete_animal(anml_id('Lion',1));
+
 
 --function to return the nutrition id when nutrition type is given
 create or replace function nut_id(ntype in varchar)return int as nutr_id int;
@@ -1035,37 +1043,146 @@ vld int;
 rec_no exception;
 many exception;
 nutr_t int;
-begin 
+begin
     select count(*) into vld from nutrition_pr where nutrition_type = ntype;
     if vld < 1 then raise rec_no;
     elsif vld>1 then raise many;
     end if;
-    
+
     select nutrition_id into nutr_t from nutrition_pr where nutrition_type = ntype;
     nutr_id := nutr_t;
     return (nutr_id);
-    exception 
+    exception
         when rec_no then dbms_output.put_line('less than 1 rec fetched');
         when many then dbms_output.put_line('more than 1 rec fetched');
 end nut_id;
 /
---procedure to delete an animal if the need arises
-create or replace procedure delete_animal (anml_id in int) as
-not_found_anmid exception;
-ch_in int;
-too_many_rows_fetched exception;
-begin 
-    select count(*) into ch_in from animal_pr where animal_id = anml_id;
-    if ch_in < 1
-    then raise not_found_anmid;
-    elsif ch_in > 1
-    then raise too_many_rows_fetched;
-    end if;
-    
-    delete from animal_pr where animal_id = anml_id;
-    dbms_output.put_line('deleted the specified aniaml');
-    exception 
-        when not_found_anmid then dbms_output.put_line('Given input has no corresponding record');
-        when too_many_rows_fetched then dbms_output.put_line('Given input fetching more than one record');
-end delete_animal;
+
+
+--the below line can be executed to update the nutrition cost when nutrition type is given
+exec update_nutrition_cost(nut_id('Bamboo'),100);
+
+
+--function to return ticket id when zoo name and ticket type is given
+create or replace function tckt_id(znm in varchar, ttype in varchar) return int as tid int;
+vld_ch int;
+t_o int;
+less_row exception;
+more_rows exception;
+begin
+    select count(*) into vld_ch from ticket_pricing_pr a join zoo_info_pr b on a.tp_zoo_id = b.zoo_id
+    where a.ticket_type = ttype and b.zoo_name = znm;
+
+    if vld_ch < 1 then raise less_row;
+    elsif vld_ch > 1 then raise more_rows;
+    end if ;
+
+    select a.ticket_id into t_o from ticket_pricing_pr a join zoo_info_pr b on a.tp_zoo_id = b.zoo_id
+    where a.ticket_type = ttype and b.zoo_name = znm;
+    tid := t_o;
+    return (tid);
+    exception
+        when less_row then dbms_output.put_line('less than 1 rec for given input');
+        when more_rows then dbms_output.put_line('more than 1 rec for given input');
+end tckt_id;
 /
+--here we are updating the ticket price of Adult ticket in Adubon Zoo as 100
+exec update_ticket_price(tckt_id('Audubon Zoo','Adult'),100);
+
+
+
+
+-----creating package
+--employee package
+create or replace package for_changes_in_employee as
+
+    procedure update_department_of_employee(
+        emp_id int,
+        new_dept varchar);
+
+    function emp_id(
+        fname varchar,
+        lname varchar,
+        znm varchar)return int;
+
+    procedure delete_a_employee(emp_fname varchar, emp_lname varchar);
+
+end for_changes_in_employee;
+/
+
+create or replace package body for_changes_in_employee as
+    tem1 int;
+    tem2 int;
+    tem3 int;
+    tem4 int;
+    tem5 int;
+    tem6 int;
+    tem7 int;
+    lessrec exception;
+    morerec exception;
+
+    function emp_id(
+        fname varchar,
+        lname varchar,
+        znm varchar)return int as tem int;
+
+        begin
+            select count(*) into tem1 from employee_pr a join zoo_info_pr b ON a.zoo_id=b.zoo_id
+            where a.first_name = fname and a.last_name = lname and b.zoo_name = znm;
+            if tem1 < 1 then raise lessrec;
+            elsif tem1 > 1 then raise morerec;
+            end if;
+
+            select employee_id into tem2 from employee_pr a join zoo_info_pr b ON a.zoo_id=b.zoo_id
+            where a.first_name = fname and a.last_name = lname and b.zoo_name = znm;
+            tem:=tem2;
+            return(tem);
+            exception
+                when lessrec then dbms_output.put_line('given input parameters unable to fetch any records');
+                when morerec then dbms_output.put_line('error: getting more than one record for the given input');
+        end;
+
+    procedure update_department_of_employee(
+        emp_id int,
+        new_dept varchar) as
+
+        begin
+            select count(*) into tem3 from employee_pr where employee_id = emp_id;
+            if tem3 < 1 then raise lessrec;
+            elsif tem3> 1 then raise morerec;
+            end if;
+            select count(*) into tem7 from department_pr where department_name = new_dept;
+            if tem7<1 then raise lessrec;
+            elsif tem7>1 then raise morerec;
+            end if;
+            select department_id into tem4 from department_pr where department_name = new_dept;
+            update employee_pr set department_id = tem4 where employee_id = emp_id;
+            dbms_output.put_line('employee department updated!');
+            exception
+                when lessrec then dbms_output.put_line('given input parameters unable to fetch any records');
+                when morerec then dbms_output.put_line('error: getting more than one record for the given input');
+        end;
+
+    procedure delete_a_employee(emp_fname varchar, emp_lname varchar) as
+
+        begin
+            select count(*) into tem5 from employee_pr where first_name = emp_fname and last_name = emp_lname;
+            if tem5<1 then raise lessrec;
+            elsif tem5>1 then raise morerec;
+            end if;
+            select employee_id into tem6 from employee_pr where first_name = emp_fname and last_name = emp_lname;
+            delete from employee_pr where employee_id = tem6;
+            dbms_output.put_line('deleted the employee record');
+            exception
+                when lessrec then dbms_output.put_line('given input parameters unable to fetch any records');
+                when morerec then dbms_output.put_line('error: getting more than one record for the given input');
+        end;
+end for_changes_in_employee;
+/
+--here we are getting the employee id of Taylor Swift and updating the department to Registrar
+declare
+r int;
+begin
+select for_changes_in_employee.emp_id('Taylor','Swift','San Diego Zoo') into r from dual;
+for_changes_in_employee.update_department_of_employee(r,'Registrar');
+end;
