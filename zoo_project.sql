@@ -1009,3 +1009,63 @@ create or replace view emp_details as
 
 select * from emp_details;
 >>>>>>> 3fd54c6073801152e04225a71e42d6a4a65f14d2
+
+--procedure to update the nutrition cost given the nutrition id
+create or replace procedure update_nutrition_cost(nid in int, n_cost in int) as
+valid_ch int;
+no_rec exception;
+more_rec exception;
+begin 
+    select count(*) into valid_ch from nutrition_pr where nutrition_id = nid;
+    if valid_ch < 1 then raise no_rec;
+    elsif valid_ch>1 then raise more_rec;
+    end if;
+    
+    update nutrition_pr set nutrition_cost = n_cost where nutrition_id = nid;
+    dbms_output.put_line('nutrition cost updated successfully');
+    exception 
+        when no_rec then dbms_output.put_line('Given nutrition id not able to fetch any records');
+        when more_rec then dbms_output.put_line('given nutririon id returning more then 1 record');
+end update_nutrition_cost;
+/
+
+--function to return the nutrition id when nutrition type is given
+create or replace function nut_id(ntype in varchar)return int as nutr_id int;
+vld int;
+rec_no exception;
+many exception;
+nutr_t int;
+begin 
+    select count(*) into vld from nutrition_pr where nutrition_type = ntype;
+    if vld < 1 then raise rec_no;
+    elsif vld>1 then raise many;
+    end if;
+    
+    select nutrition_id into nutr_t from nutrition_pr where nutrition_type = ntype;
+    nutr_id := nutr_t;
+    return (nutr_id);
+    exception 
+        when rec_no then dbms_output.put_line('less than 1 rec fetched');
+        when many then dbms_output.put_line('more than 1 rec fetched');
+end nut_id;
+/
+--procedure to delete an animal if the need arises
+create or replace procedure delete_animal (anml_id in int) as
+not_found_anmid exception;
+ch_in int;
+too_many_rows_fetched exception;
+begin 
+    select count(*) into ch_in from animal_pr where animal_id = anml_id;
+    if ch_in < 1
+    then raise not_found_anmid;
+    elsif ch_in > 1
+    then raise too_many_rows_fetched;
+    end if;
+    
+    delete from animal_pr where animal_id = anml_id;
+    dbms_output.put_line('deleted the specified aniaml');
+    exception 
+        when not_found_anmid then dbms_output.put_line('Given input has no corresponding record');
+        when too_many_rows_fetched then dbms_output.put_line('Given input fetching more than one record');
+end delete_animal;
+/
