@@ -76,7 +76,7 @@ begin
   execute immediate 'create table customer_pr(customer_id int default customer_pk.nextval,
                         first_name varchar(30) not null,
                         last_name varchar(30) not null,
-                        sex varchar(30),
+                        gender varchar(30),
                         constraint customer_pk primary key(customer_id))';
     dbms_output.put_line('table customer_pr created');
 end;
@@ -154,7 +154,7 @@ begin
   execute immediate 'create table employee_pr(employee_id int,
                                 first_name varchar(30),
                                 last_name varchar(30),
-                                date_of_birth date,
+                                date_of_birth timestamp,
                                 department_id int not null,
                                 zoo_id int not null,
                                 constraint employee_fk_2 foreign key (zoo_id) references zoo_info_pr(zoo_id),
@@ -878,6 +878,84 @@ select 1 from dual;
 
 Commit;
 
+
+select * from zoo_info_pr;
+select * from ticket_pricing_pr;
+
+---------------------------------------------------------------------------------------------------------
+
+-- Scenarios for Fetching Different type of Data from Different tables !!
+
+-- Scenario 1
+Select a.zoo_name as Zoo_Name,
+       a.city || ',' || a.state || ',' || a.zip_code as Zoo_Address,
+       (Select SUM(b.price*c.ticket_count)
+        from
+        Zoo_INFO_PR a
+        join TICKET_PRICING_PR b
+        on a.zoo_id = b.tp_zoo_id
+        join TRANSACTION_PR c
+        on b.ticket_id = c.ticket_id
+        where a.Zoo_Id = 3) as Revenue
+from
+ZOO_INFO_PR a
+where a.zoo_id = 3;
+
+-- Scenario 2
+Select a.zoo_name as Zoo_Name,
+       b.Animal_name || '-' ||  b.Life_Expectency || 'yrs' as Animal_and_Life_Expentency,
+       b.category,
+       a.city || ',' || a.state || ',' || a.zip_code as Zoo_Address
+from
+Zoo_INFO_PR a
+join Animal_PR b
+on a.zoo_id = b.zoo_id
+where a.Zoo_Id = 2;
+
+-- Scenario 3
+Select a.zoo_name as Zoo_Name,
+        b.Animal_name,
+       (Select COUNT(b.endangered_category)
+        from
+        Zoo_INFO_PR a
+        join Animal_PR b
+        on a.zoo_id = b.zoo_id
+        where a.Zoo_Id = 12
+        and b.endangered_category = 'Y') as Endangered_Animal_Count
+from
+Zoo_INFO_PR a
+join Animal_PR b
+on a.zoo_id = b.zoo_id
+where a.Zoo_Id = 12
+and b.endangered_category = 'Y';
+
+-- Scenario 4
+Select a.zoo_name as Zoo_Name,
+       (Select SUM(c.ticket_count)
+        from
+        Zoo_INFO_PR a
+        join TICKET_PRICING_PR b
+        on a.zoo_id = b.tp_zoo_id
+        join TRANSACTION_PR c
+        on b.ticket_id = c.ticket_id
+        where a.Zoo_Id = 5 and b.Ticket_type = 'Adult') as Adult_Count,
+        (Select SUM(c.ticket_count)
+        from
+        Zoo_INFO_PR a
+        join TICKET_PRICING_PR b
+        on a.zoo_id = b.tp_zoo_id
+        join TRANSACTION_PR c
+        on b.ticket_id = c.ticket_id
+        where a.Zoo_Id = 5 and b.Ticket_type = 'Child') as Child_Count,
+        a.city || ',' || a.state || ',' || a.zip_code as Zoo_Address
+from
+ZOO_INFO_PR a
+where a.zoo_id = 5;
+
+
+
+
+
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 ------creating views according to problem statement
@@ -937,7 +1015,11 @@ create or replace view emp_details as
 select * from emp_details;
 
 
----------
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+
 
 
 ----creating stored procedures
@@ -1186,108 +1268,166 @@ begin
 select for_changes_in_employee.emp_id('Taylor','Swift','San Diego Zoo') into r from dual;
 for_changes_in_employee.update_department_of_employee(r,'Registrar');
 end;
+/
+
+
+
+-------------------------------------------------------------------------
+-------------------------------------------------------------------------
+-------------------------------------------------------------------------
+--reports
+
+--Ticket price report for customers to see which ticket type is costliest
+select a.price, a.ticket_type , b.zoo_name
+from ticket_pricing_pr a inner join zoo_info_pr b on a.tp_zoo_id=b.zoo_id
+order by a.price desc;
+
+
+
+---gives the total number of visitors in a month for all the zoo combined in the year 2020
+select  extract (month from a.date_of_transaction) as "Month in 2020" , sum(a.ticket_count) As "Number of visitors"
+from transaction_pr a inner join ticket_pricing_pr b on b.ticket_id=a.ticket_id inner join zoo_info_pr c on c.zoo_id=b.tp_zoo_id
+where extract(year from a.date_of_transaction) = 2020
+group by extract (month from a.date_of_transaction)
+order by "Number of visitors" desc;
+
+---gives the total number of visitors in a month for all the zoo combined in the year 2021
+select  extract (month from a.date_of_transaction) as "Month in 2021" , sum(a.ticket_count) As "Number of visitors"
+from transaction_pr a inner join ticket_pricing_pr b on b.ticket_id=a.ticket_id inner join zoo_info_pr c on c.zoo_id=b.tp_zoo_id
+where extract(year from a.date_of_transaction) = 2021
+group by extract (month from a.date_of_transaction)
+order by "Number of visitors" desc;
+
+
+
+
+--this query gives the number of visitors for each zoo in a month for the year 2020
+select c.zoo_name , extract (month from a.date_of_transaction) as "Month in 2020" , sum(a.ticket_count) As "Number of visitors"
+from transaction_pr a inner join ticket_pricing_pr b on b.ticket_id=a.ticket_id inner join zoo_info_pr c on c.zoo_id=b.tp_zoo_id
+where extract(year from a.date_of_transaction)=2020
+group by extract (month from a.date_of_transaction), c.zoo_name
+order by c.zoo_name;
+
+--this query gives the number of visitors for each zoo in a month for the year 2021
+select c.zoo_name , extract (month from a.date_of_transaction) as "Month in 2021" , sum(a.ticket_count) As "Number of visitors"
+from transaction_pr a inner join ticket_pricing_pr b on b.ticket_id=a.ticket_id inner join zoo_info_pr c on c.zoo_id=b.tp_zoo_id
+where extract(year from a.date_of_transaction)=2021
+group by extract (month from a.date_of_transaction), c.zoo_name
+order by c.zoo_name;
+
+
+
+
+--gives the sales in a month of year 2020 in each zoo(month wise totoal sales in each zoo in 2020)
+Select a.zoo_name as "Zoo Name", extract (month from c.date_of_transaction) as "Month in 2020", SUM(c.total_amount) as "Total sales"
+from Zoo_INFO_PR a inner join TICKET_PRICING_PR b on a.zoo_id = b.tp_zoo_id inner join TRANSACTION_PR c on b.ticket_id = c.ticket_id
+where extract(year from c.date_of_transaction) = 2020
+group by a.zoo_name, extract (month from c.date_of_transaction)
+order by "Zoo Name";
+
+--gives the sales in a month of year 2021 in each zoo(month wise total sales in each zoo in 2021)
+Select a.zoo_name as "Zoo Name", extract (month from c.date_of_transaction) as "Month in 2021", SUM(c.total_amount) as "Total sales"
+from Zoo_INFO_PR a inner join TICKET_PRICING_PR b on a.zoo_id = b.tp_zoo_id inner join TRANSACTION_PR c on b.ticket_id = c.ticket_id
+where extract(year from c.date_of_transaction) = 2021
+group by a.zoo_name, extract (month from c.date_of_transaction)
+order by "Zoo Name";
+
+
+
+
+--year wise total sales for each zoo(for 2020)
+Select a.zoo_name as "Zoo Name", SUM(c.total_amount) as "Total sales in 2020"
+from Zoo_INFO_PR a join TICKET_PRICING_PR b on a.zoo_id = b.tp_zoo_id join TRANSACTION_PR c on b.ticket_id = c.ticket_id
+where extract(year from c.date_of_transaction) = 2020
+group by a.zoo_name
+order by "Total sales in 2020" desc;
+
+--year wise total sales for each zoo(for 2021)
+Select a.zoo_name as "Zoo Name", SUM(c.total_amount) as "Total sales in 2021"
+from Zoo_INFO_PR a join TICKET_PRICING_PR b on a.zoo_id = b.tp_zoo_id join TRANSACTION_PR c on b.ticket_id = c.ticket_id
+where extract(year from c.date_of_transaction) = 2021
+group by a.zoo_name
+order by "Total sales in 2021" desc;
+
+
+
+
+
+--gives the average sales for each zoo for every month
+Select a.zoo_name as "Zoo Name", extract (month from c.date_of_transaction) as "Month ",  avg (c.total_amount) as "Average sales"
+from Zoo_INFO_PR a inner join TICKET_PRICING_PR b on a.zoo_id = b.tp_zoo_id inner join TRANSACTION_PR c on b.ticket_id = c.ticket_id
+group by a.zoo_name, extract (month from c.date_of_transaction)
+order by "Month ";
+
+
+
+
+
+
+--average sales in the year 2020 in a zoo which has endangered species
+select avg("Total sales in 2020") as "Average sales in 2020 for endangered zoos" from (Select a.zoo_name as "Zoo Name", SUM(c.total_amount) as "Total sales in 2020"
+from Zoo_INFO_PR a join TICKET_PRICING_PR b on a.zoo_id = b.tp_zoo_id join TRANSACTION_PR c on b.ticket_id = c.ticket_id
+where extract(year from c.date_of_transaction) = 2020 and a.zoo_id in (select distinct(l.zoo_id)
+from zoo_info_pr l inner join animal_pr i on l.zoo_id=i.zoo_id
+where i.endangered_category = 'Y')
+group by a.zoo_name
+order by "Total sales in 2020" desc) ;
+
+--vs average sales in the year 2020 in a zoo which doesn't have endangered species
+select avg("Total sales in 2020") as "Average sales in 2020 for non-endangered zoos" from (Select a.zoo_name as "Zoo Name", SUM(c.total_amount) as "Total sales in 2020"
+from Zoo_INFO_PR a join TICKET_PRICING_PR b on a.zoo_id = b.tp_zoo_id join TRANSACTION_PR c on b.ticket_id = c.ticket_id
+where extract(year from c.date_of_transaction) = 2020 and a.zoo_id in (select distinct(l.zoo_id)
+from zoo_info_pr l inner join animal_pr i on l.zoo_id=i.zoo_id
+where i.endangered_category = 'N')
+group by a.zoo_name
+order by "Total sales in 2020" desc);
+
+--average sales in the year 2021 in a zoo which has endangered species
+select avg("Total sales in 2020") as "Average sales in 2021 for endangered zoos" from (Select a.zoo_name as "Zoo Name", SUM(c.total_amount) as "Total sales in 2020"
+from Zoo_INFO_PR a join TICKET_PRICING_PR b on a.zoo_id = b.tp_zoo_id join TRANSACTION_PR c on b.ticket_id = c.ticket_id
+where extract(year from c.date_of_transaction) = 2021 and a.zoo_id in (select distinct(l.zoo_id)
+from zoo_info_pr l inner join animal_pr i on l.zoo_id=i.zoo_id
+where i.endangered_category = 'Y')
+group by a.zoo_name
+order by "Total sales in 2020" desc);
+
+--vs average sales in the year 2021 in a zoo which has endangered species
+select avg("Total sales in 2020") as "Average sales in 2021 for endangered zoos" from (Select a.zoo_name as "Zoo Name", SUM(c.total_amount) as "Total sales in 2020"
+from Zoo_INFO_PR a join TICKET_PRICING_PR b on a.zoo_id = b.tp_zoo_id join TRANSACTION_PR c on b.ticket_id = c.ticket_id
+where extract(year from c.date_of_transaction) = 2021 and a.zoo_id in (select distinct(l.zoo_id)
+from zoo_info_pr l inner join animal_pr i on l.zoo_id=i.zoo_id
+where i.endangered_category = 'N')
+group by a.zoo_name
+order by "Total sales in 2020" desc);
+
+
+
+
+
+------
+/**/
+------
+
+/*
+--average number of visitors in a month of 2020 for each zoo
+select extract (month from a.date_of_transaction) as "Month in 2020" , c.zoo_name , avg(a.ticket_count) As "Average number of visitors"
+from transaction_pr a inner join ticket_pricing_pr b on b.ticket_id=a.ticket_id inner join zoo_info_pr c on c.zoo_id=b.tp_zoo_id
+where extract(year from a.date_of_transaction)=2020
+group by extract (month from a.date_of_transaction), c.zoo_name
+order by "Month in 2020";
+
+--average number of visitors in a month of 2021 for each zoo
+select extract (month from a.date_of_transaction) as "Month in 2021" , c.zoo_name , avg(a.ticket_count) As "Average number of visitors"
+from transaction_pr a inner join ticket_pricing_pr b on b.ticket_id=a.ticket_id inner join zoo_info_pr c on c.zoo_id=b.tp_zoo_id
+where extract(year from a.date_of_transaction)=2021
+group by extract (month from a.date_of_transaction), c.zoo_name
+order by "Month in 2021";
+
+
+*/
 
 -- TRIGGERS ON EMPLOYEE TABLE
--- Trigger 1
-
-CREATE OR REPLACE TRIGGER EMPLOYEE_PR_T1
-AFTER INSERT ON EMPLOYEE_PR
-REFERENCING OLD AS OLD NEW AS NEW
-FOR EACH ROW
-BEGIN
-INSERT INTO UPDATED_EMPLOYEE_PR
-(UPDATED_EMPLOYEE_ID,
-FIRST_NAME,
-LAST_NAME,
-DATE_OF_BIRTH,
-DEPARTMENT_ID,
-ZOO_ID,
-TRG_ACTION)
-VALUES
-(:NEW.EMPLOYEE_ID,
-:NEW.FIRST_NAME,
-:NEW.LAST_NAME,
-:NEW.DATE_OF_BIRTH,
-:NEW.DEPARTMENT_ID,
-:NEW.ZOO_ID,
-'INSERTED');
-END;
-
--- Trigger 2
-
-CREATE OR REPLACE TRIGGER DEL_EMPLOYEE_PR_T2
-AFTER DELETE ON EMPLOYEE_PR
-FOR EACH ROW
-DECLARE
-username varchar2(10);
-BEGIN
-SELECT user INTO username FROM dual;
-INSERT INTO UPDATED_EMPLOYEE_PR VALUES
-(:OLD.EMPLOYEE_ID,
-:OLD.FIRST_NAME,
-:OLD.LAST_NAME,
-:OLD.DATE_OF_BIRTH,
-:OLD.DEPARTMENT_ID,
-:OLD.ZOO_ID,
-'DELETED');
-END;
-
--- Trigger 3
-
-CREATE OR REPLACE TRIGGER ANIMAL_PR_T1
-AFTER INSERT ON ANIMAL_PR
-REFERENCING OLD AS OLD NEW AS NEW
-FOR EACH ROW
-BEGIN
-INSERT INTO UPDATED_ANIMAL_PR
-(UPDATED_ANIMAL_ID,
-ANIMAL_NAME,
-ZOO_ID,
-CATEGORY,
-ENDANGERED_CATEGORY,
-LIFE_EXPECTENCY,
-HABITAT_ID,
-NUTRITION_ID,
-ANIMAL_KINGDOM_ID,
-TRG_ACTION)
-VALUES
-(:NEW.ANIMAL_ID,
-:NEW.ANIMAL_NAME,
-:NEW.ZOO_ID,
-:NEW.CATEGORY,
-:NEW.ENDANGERED_CATEGORY,
-:NEW.LIFE_EXPECTENCY,
-:NEW.HABITAT_ID,
-:NEW.NUTRITION_ID,
-:NEW.ANIMAL_KINGDOM_ID,
-'INSERTED');
-END;
-
--- Trigger 4
-
-CREATE OR REPLACE TRIGGER DEL_ANIMAL_PR_T2
-AFTER DELETE
-ON ANIMAL_PR
-FOR EACH ROW
-DECLARE
-username varchar2(10);
-BEGIN
-SELECT user INTO username FROM dual;
-INSERT INTO UPDATED_ANIMAL_PR VALUES
-(:OLD.ANIMAL_ID,
-:OLD.ANIMAL_NAME,
-:OLD.ZOO_ID,
-:OLD.CATEGORY,
-:OLD.ENDANGERED_CATEGORY,
-:OLD.LIFE_EXPECTENCY,
-:OLD.HABITAT_ID,
-:OLD.NUTRITION_ID,
-:OLD.ANIMAL_KINGDOM_ID,
-'DELETED');
-END;
----------------
-
--- Created new table to keep updated Employees & ANIMAL Record
+-- Created new table to keep updated Employees Record
 
 --updated_employee_pr table
 begin
@@ -1301,29 +1441,57 @@ first_name varchar(30),
 last_name varchar(30),
 date_of_birth date,
 department_id int not null,
-zoo_id int not null,
-TRG_ACTION varchar(30))';
+zoo_id int not null)';
 dbms_output.put_line('table updated_employee_pr created');
 end;
 /
 
---updated animal table
-begin
-begin
-execute immediate 'drop table updated_animal_pr';
-exception when others then
-NULL;
-end;
-execute immediate 'create table updated_animal_pr(updated_animal_id int,
-animal_name varchar(30),
-zoo_id int,
-category varchar(30),
-endangered_category varchar(30),
-life_expectency int,
-habitat_id int not null,
-nutrition_id int not null,
-animal_kingdom_id int not null,
-TRG_ACTION varchar(30))';
-dbms_output.put_line('table updated_animal_pr created');
-end;
+-- Trigger 1
+
+CREATE OR REPLACE TRIGGER EMPLOYEE_PR_T1
+AFTER INSERT ON EMPLOYEE_PR
+REFERENCING OLD AS OLD NEW AS NEW
+FOR EACH ROW
+BEGIN
+  INSERT INTO UPDATED_EMPLOYEE_PR
+  (UPDATED_EMPLOYEE_ID,
+   FIRST_NAME,
+   LAST_NAME,
+   DATE_OF_BIRTH,
+   DEPARTMENT_ID,
+   ZOO_ID)
+   VALUES
+   (:NEW.EMPLOYEE_ID,
+    :NEW.FIRST_NAME,
+    :NEW.LAST_NAME,
+    :NEW.DATE_OF_BIRTH,
+    :NEW.DEPARTMENT_ID,
+    :NEW.ZOO_ID);
+END;
 /
+
+
+-- Trigger 2
+
+CREATE OR REPLACE TRIGGER EMPLOYEE_PR_DEL_T2
+AFTER DELETE ON EMPLOYEE_PR
+REFERENCING OLD AS OLD NEW AS NEW
+FOR EACH ROW
+BEGIN
+  INSERT INTO UPDATED_EMPLOYEE_PR
+  (UPDATED_EMPLOYEE_ID,
+   FIRST_NAME,
+   LAST_NAME,
+   DATE_OF_BIRTH,
+   DEPARTMENT_ID,
+   ZOO_ID)
+   VALUES
+   (:OLD.EMPLOYEE_ID,
+    :OLD.FIRST_NAME,
+    :OLD.LAST_NAME,
+    :OLD.DATE_OF_BIRTH,
+    :OLD.DEPARTMENT_ID,
+    :OLD.ZOO_ID);
+END;
+/
+---------------
