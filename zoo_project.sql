@@ -1186,3 +1186,80 @@ begin
 select for_changes_in_employee.emp_id('Taylor','Swift','San Diego Zoo') into r from dual;
 for_changes_in_employee.update_department_of_employee(r,'Registrar');
 end;
+
+
+
+
+
+
+-- TRIGGERS ON EMPLOYEE TABLE
+
+
+
+-- Trigger 1
+
+CREATE OR REPLACE TRIGGER EMPLOYEE_PR_T1 
+AFTER INSERT ON EMPLOYEE_PR 
+REFERENCING OLD AS OLD NEW AS NEW 
+FOR EACH ROW
+BEGIN
+  INSERT INTO UPDATED_EMPLOYEE_PR
+  (UPDATED_EMPLOYEE_ID,
+   FIRST_NAME,
+   LAST_NAME,
+   DATE_OF_BIRTH,
+   DEPARTMENT_ID,
+   ZOO_ID)
+   VALUES
+   (:NEW.EMPLOYEE_ID,
+    :NEW.FIRST_NAME,
+    :NEW.LAST_NAME,
+    :NEW.DATE_OF_BIRTH,
+    :NEW.DEPARTMENT_ID,
+    :NEW.ZOO_ID);
+END;
+
+
+-- Trigger 2
+
+CREATE OR REPLACE TRIGGER EMPLOYEE_PR_DEL_T2 
+AFTER DELETE ON EMPLOYEE_PR 
+REFERENCING OLD AS OLD NEW AS NEW 
+FOR EACH ROW
+BEGIN
+  INSERT INTO UPDATED_EMPLOYEE_PR
+  (UPDATED_EMPLOYEE_ID,
+   FIRST_NAME,
+   LAST_NAME,
+   DATE_OF_BIRTH,
+   DEPARTMENT_ID,
+   ZOO_ID)
+   VALUES
+   (:OLD.EMPLOYEE_ID,
+    :OLD.FIRST_NAME,
+    :OLD.LAST_NAME,
+    :OLD.DATE_OF_BIRTH,
+    :OLD.DEPARTMENT_ID,
+    :OLD.ZOO_ID);
+END;
+
+---------------
+
+-- Created new table to keep updated Employees Record
+
+--updated_employee_pr table
+begin
+begin
+execute immediate 'drop table updated_employee_pr';
+exception when others then
+NULL;
+end;
+execute immediate 'create table updated_employee_pr(updated_employee_id int,
+first_name varchar(30),
+last_name varchar(30),
+date_of_birth date,
+department_id int not null,
+zoo_id int not null)';
+dbms_output.put_line('table updated_employee_pr created');
+end;
+/
