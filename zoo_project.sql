@@ -247,7 +247,46 @@ begin
 end;
 /
 
+-- Created new table to keep updated Employees & ANIMAL Record
 
+--updated_employee_pr table
+begin
+begin
+execute immediate 'drop table updated_employee_pr';
+exception when others then
+NULL;
+end;
+execute immediate 'create table updated_employee_pr(updated_employee_id int,
+first_name varchar(30),
+last_name varchar(30),
+date_of_birth date,
+department_id int not null,
+zoo_id int not null,
+TRG_ACTION varchar(30))';
+dbms_output.put_line('table updated_employee_pr created');
+end;
+/
+
+--updated animal table
+begin
+begin
+execute immediate 'drop table updated_animal_pr';
+exception when others then
+NULL;
+end;
+execute immediate 'create table updated_animal_pr(updated_animal_id int,
+animal_name varchar(30),
+zoo_id int,
+category varchar(30),
+endangered_category varchar(30),
+life_expectency int,
+habitat_id int not null,
+nutrition_id int not null,
+animal_kingdom_id int not null,
+TRG_ACTION varchar(30))';
+dbms_output.put_line('table updated_animal_pr created');
+end;
+/
 
 ----inserting values into tables
 
@@ -1451,6 +1490,7 @@ VALUES
 :NEW.ZOO_ID,
 'INSERTED');
 END;
+/
 
 -- Trigger 2
 
@@ -1470,6 +1510,7 @@ INSERT INTO UPDATED_EMPLOYEE_PR VALUES
 :OLD.ZOO_ID,
 'DELETED');
 END;
+/
 
 -- Trigger 3
 
@@ -1501,6 +1542,7 @@ VALUES
 :NEW.ANIMAL_KINGDOM_ID,
 'INSERTED');
 END;
+/
 
 -- Trigger 4
 
@@ -1524,48 +1566,8 @@ INSERT INTO UPDATED_ANIMAL_PR VALUES
 :OLD.ANIMAL_KINGDOM_ID,
 'DELETED');
 END;
+/
 ---------------
-
--- Created new table to keep updated Employees & ANIMAL Record
-
---updated_employee_pr table
-begin
-begin
-execute immediate 'drop table updated_employee_pr';
-exception when others then
-NULL;
-end;
-execute immediate 'create table updated_employee_pr(updated_employee_id int,
-first_name varchar(30),
-last_name varchar(30),
-date_of_birth date,
-department_id int not null,
-zoo_id int not null,
-TRG_ACTION varchar(30))';
-dbms_output.put_line('table updated_employee_pr created');
-end;
-/
-
---updated animal table
-begin
-begin
-execute immediate 'drop table updated_animal_pr';
-exception when others then
-NULL;
-end;
-execute immediate 'create table updated_animal_pr(updated_animal_id int,
-animal_name varchar(30),
-zoo_id int,
-category varchar(30),
-endangered_category varchar(30),
-life_expectency int,
-habitat_id int not null,
-nutrition_id int not null,
-animal_kingdom_id int not null,
-TRG_ACTION varchar(30))';
-dbms_output.put_line('table updated_animal_pr created');
-end;
-/
 
 ----- INDEXES
 
@@ -1582,3 +1584,4 @@ SELECT INDEX_NAME, INDEX_TYPE, TABLE_NAME
                        'TRANSACTION_PR',
                        'ZOO_DEPARTMENT_PR',
                        'ZOO_INFO_PR');
+/
